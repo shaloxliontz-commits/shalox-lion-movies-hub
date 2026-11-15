@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shalox Lion Admin Dashboard</title>
+
+<style>
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 20px;
+  background: #10131d;
+  color: white;
+  font-family: Arial, sans-serif;
+}
+
+header {
+  text-align: center;
+  padding: 20px;
+  background: #20283a;
+  border-radius: 12px;
+}
+
+h1, h2 { color: #f5b82e; }
+
+.container {
+  max-width: 750px;
+  margin: auto;
+}
+
+.card {
+  background: #20283a;
+  padding: 20px;
+  margin-top: 20px;
+  border-radius: 12px;
+}
+
+label {
+  display: block;
+  margin-top: 15px;
+  margin-bottom: 6px;
+}
+
+input, textarea, select {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #46516a;
+  border-radius: 7px;
+  background: #111827;
+  color: white;
+}
+
+button {
+  width: 100%;
+  padding: 13px;
+  margin-top: 15px;
+  background: #e5a623;
+  color: #111;
+  border: none;
+  border-radius: 7px;
+  font-weight: bold;
+}
+
+.item {
+  background: #303b52;
+  padding: 12px;
+  border-radius: 8px;
+  margin-top: 10px;
+  overflow-wrap: anywhere;
+}
+
+.small {
+  color: #bbb;
+  font-size: 13px;
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<header>
+  <h1>🦁 SHALOX LION</h1>
+  <p>ADMIN DASHBOARD</p>
+  <p>Manage Movies & Series</p>
+</header>
+
+<div class="card">
+  <h2>🎬 Add Movie</h2>
+
+  <label>Movie Name / Jina la Movie</label>
+  <input id="movieName" placeholder="Enter movie name">
+
+  <label>Description / Maelezo</label>
+  <textarea id="movieDescription" placeholder="Movie description"></textarea>
+
+  <label>Poster Image URL</label>
+  <input id="moviePoster" placeholder="Image URL">
+
+  <label>Price / Bei (TSh)</label>
+  <input id="moviePrice" type="number" min="1" placeholder="300">
+
+  <label>Video ID / Video Reference</label>
+  <input id="movieVideo" placeholder="Authorized video ID">
+
+  <button onclick="addMovie()">Add Movie</button>
+</div>
+
+<div class="card">
+  <h2>📺 Add Series</h2>
+
+  <label>Series Name</label>
+  <input id="seriesName" placeholder="Enter series name">
+
+  <label>Description</label>
+  <textarea id="seriesDescription" placeholder="Series description"></textarea>
+
+  <button onclick="addSeries()">Add Series</button>
+</div>
+
+<div class="card">
+  <h2>📚 Add Season</h2>
+
+  <label>Select Series</label>
+  <select id="seasonSeries"></select>
+
+  <label>Season Number</label>
+  <input id="seasonNumber" type="number" min="1" placeholder="1">
+
+  <label>Season Price (TSh)</label>
+  <input id="seasonPrice" type="number" min="1" placeholder="1000">
+
+  <button onclick="addSeason()">Add Season</button>
+</div>
+
+<div class="card">
+  <h2>🎞️ Add Episode</h2>
+
+  <label>Select Season</label>
+  <select id="episodeSeason"></select>
+
+  <label>Episode Name</label>
+  <input id="episodeName" placeholder="Episode 1">
+
+  <label>Video ID / Reference</label>
+  <input id="episodeVideo" placeholder="Authorized video ID">
+
+  <button onclick="addEpisode()">Add Episode</button>
+</div>
+
+<div class="card">
+  <h2>📦 My Content</h2>
+  <div id="contentList">No content added yet.</div>
+  <p class="small">
+    Demo storage: content is saved in this browser only.
+    It is not yet shared with the public website.
+  </p>
+</div>
+
+</div>
+
+<script>
+let movies = [];
+let series = [];
+let seasons = [];
+let episodes = [];
+
+function addMovie() {
+  const name = document.getElementById("movieName").value.trim();
+  const description = document.getElementById("movieDescription").value.trim();
+  const poster = document.getElementById("moviePoster").value.trim();
+  const price = Number(document.getElementById("moviePrice").value);
+  const video = document.getElementById("movieVideo").value.trim();
+
+  if (!name || !Number.isFinite(price) || price <= 0) {
+    alert("Enter movie name and a valid price.");
+    return;
+  }
+
+  movies.push({ name, description, poster, price, video });
+  render();
+  document.getElementById("movieName").value = "";
+  document.getElementById("movieDescription").value = "";
+  document.getElementById("moviePoster").value = "";
+  document.getElementById("moviePrice").value = "";
+  document.getElementById("movieVideo").value = "";
+}
+
+function addSeries() {
+  const name = document.getElementById("seriesName").value.trim();
+  const description = document.getElementById("seriesDescription").value.trim();
+
+  if (!name) {
+    alert("Enter series name.");
+    return;
+  }
+
+  series.push({ name, description });
+  updateSelects();
+  render();
+  document.getElementById("seriesName").value = "";
+  document.getElementById("seriesDescription").value = "";
+}
+
+function addSeason() {
+  const seriesIndex = document.getElementById("seasonSeries").value;
+  const number = Number(document.getElementById("seasonNumber").value);
+  const price = Number(document.getElementById("seasonPrice").value);
+
+  if (seriesIndex === "" || !Number.isInteger(number) ||
+      number < 1 || !Number.isFinite(price) || price <= 0) {
+    alert("Select a series and enter a valid season number and price.");
+    return;
+  }
+
+  seasons.push({
+    seriesIndex: Number(seriesIndex),
+    number,
+    price
+  });
+
+  updateSelects();
+  render();
+  document.getElementById("seasonNumber").value = "";
+  document.getElementById("seasonPrice").value = "";
+}
+
+function addEpisode() {
+  const seasonIndex = document.getElementById("episodeSeason").value;
+  const name = document.getElementById("episodeName").value.trim();
+  const video = document.getElementById("episodeVideo").value.trim();
+
+  if (seasonIndex === "" || !name || !video) {
+    alert("Select a season and enter episode name and video reference.");
+    return;
+  }
+
+  episodes.push({
+    seasonIndex: Number(seasonIndex),
+    name,
+    video
+  });
+
+  render();
+  document.getElementById("episodeName").value = "";
+  document.getElementById("episodeVideo").value = "";
+}
+
+function updateSelects() {
+  const seriesSelect = document.getElementById("seasonSeries");
+  const seasonSelect = document.getElementById("episodeSeason");
+
+  seriesSelect.innerHTML = "";
+  seasonSelect.innerHTML = "";
+
+  series.forEach((item, index) => {
+    const option = document.createElement("option");
+    option.value = index;
+    option.textContent = item.name;
+    seriesSelect.appendChild(option);
+  });
+
+  seasons.forEach((item, index) => {
+    const option = document.createElement("option");
+    option.value = index;
+    option.textContent =
+      series[item.seriesIndex].name + " - Season " + item.number;
+    seasonSelect.appendChild(option);
+  });
+}
+
+function render() {
+  const list = document.getElementById("contentList");
+  list.innerHTML = "";
+
+  const addItem = (title, detail) => {
+    const div = document.createElement("div");
+    div.className = "item";
+    const strong = document.createElement("strong");
+    strong.textContent = title;
+    const p = document.createElement("p");
+    p.textContent = detail;
+    div.append(strong, p);
+    list.appendChild(div);
+  };
+
+  movies.forEach(item =>
+    addItem("🎬 " + item.name, "TSh " + item.price)
+  );
+
+  series.forEach(item =>
+    addItem("📺 " + item.name, item.description)
+  );
+
+  seasons.forEach(item =>
+    addItem(
+      "Season " + item.number,
+      series[item.seriesIndex].name + " - TSh " + item.price
+    )
+  );
+
+  episodes.forEach(item =>
+    addItem("🎞️ " + item.name, "Episode added")
+  );
+
+  if (!movies.length && !series.length &&
+      !seasons.length && !episodes.length) {
+    list.textContent = "No content added yet.";
+  }
+}
+</script>
+
+</body>
+</html>
