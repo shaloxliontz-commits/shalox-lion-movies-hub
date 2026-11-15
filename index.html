@@ -38,15 +38,21 @@
       border-radius: 7px;
       font-size: 16px;
       font-weight: bold;
+      cursor: pointer;
     }
     .note {
       color: #bbb;
       font-size: 14px;
     }
+    #result {
+      margin-top: 20px;
+      color: #f5c542;
+    }
   </style>
 </head>
 <body>
   <div class="container">
+
     <h1>🎬 SHALOX LION MOVIES HUB</h1>
     <p>Karibu kwenye Movie Hub yetu!</p>
 
@@ -60,14 +66,60 @@
     <h2>Movie Test</h2>
     <p class="price">Bei ya mfano: TSh 500</p>
 
-    <button onclick="alert('Huu ni ukurasa wa majaribio tu. Hakuna malipo yanayopokelewa bado.')">
+    <button id="continueBtn" onclick="testPayment()">
       Endelea
     </button>
 
+    <p id="result"></p>
+
     <p class="note">
-      Huu ni ukurasa wa majaribio. Malipo na ulinzi wa video bado havijaunganishwa.
+      Huu ni ukurasa wa majaribio.
+      Hakuna malipo yanayopokelewa.
+      Video bado haijalindwa kwa mnunuzi.
     </p>
+
     <p>© 2026 Shalox Lion Movies Hub</p>
+
   </div>
+
+  <script>
+    async function testPayment() {
+      const button = document.getElementById("continueBtn");
+      const result = document.getElementById("result");
+
+      button.disabled = true;
+      result.textContent = "Inajaribu kuwasiliana na mfumo...";
+
+      try {
+        const response = await fetch(
+          "/.netlify/functions/verify-payment",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              mode: "demo"
+            })
+          }
+        );
+
+        const data = await response.json();
+
+        if (data.success && data.demo) {
+          result.textContent = data.message;
+        } else {
+          result.textContent =
+            data.message || "Jaribio halijafanikiwa.";
+        }
+
+      } catch (error) {
+        result.textContent =
+          "Imeshindikana kuwasiliana na mfumo. Jaribu tena.";
+      }
+
+      button.disabled = false;
+    }
+  </script>
 </body>
 </html>
