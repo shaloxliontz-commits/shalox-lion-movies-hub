@@ -71,7 +71,10 @@ async function loadContent(table){
    }
   }
  );
- if(!response.ok) throw new Error("Database connection failed");
+ if(!response.ok) {
+ const errorText = await response.text();
+ throw new Error("Supabase error " + response.status + ": " + errorText);
+ }
  return await response.json();
 }
 
