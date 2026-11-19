@@ -127,10 +127,10 @@ async function start(){
   if(!movies.length) movieList.textContent="No published movies yet.";
   if(!series.length) seriesList.textContent="No published series yet.";
 
- }catch(error){
-  document.getElementById("status").textContent=
-   "Connection problem. Please check Supabase settings.";
-  console.error(error);
+}catch(error){
+ document.getElementById("status").textContent=
+ "Supabase error: "+error.message;
+ console.error("Supabase error:",error);
  }
 }
 start();
