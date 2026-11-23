@@ -20,7 +20,7 @@ button{background:#16a085;color:white;border:0;font-weight:bold}
 <h2>Admin Login</h2>
 <input id="email" type="email" placeholder="Email">
 <input id="password" type="password" placeholder="Password">
-<button onclick="document.getElementById('status').textContent='Button works!'">Login</button>
+<button onclick="login()">Login</button>
 <p id="status"></p>
 </div>
 
@@ -48,8 +48,7 @@ button{background:#16a085;color:white;border:0;font-weight:bold}
 <script>
 const SUPABASE_URL = "https://ddcnpqwlgwhfmtpfmnpm.supabase.co";
 const KEY = "sb_publishable_sPzS56wEqJEtag_21ls_4g_Uj8NwOGS";
-const db = supabase.createClient(URL, KEY);
-
+const db = supabase.createClient(SUPABASE_URL, KEY);
 async function login(){
  const email = document.getElementById("email").value;
  const password = document.getElementById("password").value;
