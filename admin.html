@@ -24,7 +24,7 @@ button{background:#16a085;color:white;border:0;font-weight:bold}
 <p id="status"></p>
 </div>
 
-<div id="dashboard" style="display:none">
+<div id="dashboard">
 <h2>Add Movie</h2>
 <input id="title" placeholder="Movie name">
 <textarea id="description" placeholder="Description"></textarea>
@@ -49,20 +49,27 @@ button{background:#16a085;color:white;border:0;font-weight:bold}
 const SUPABASE_URL = "https://ddcnpqwlgwhfmtpfmnpm.supabase.co";
 const KEY = "sb_publishable_sPzS56wEqJEtag_21ls_4g_Uj8NwOGS";
 const db = supabase.createClient(SUPABASE_URL, KEY);
+
 async function login(){
- const email = document.getElementById("email").value;
- const password = document.getElementById("password").value;
  const status = document.getElementById("status");
+ status.textContent = "Logging in...";
 
- const {data,error} = await db.auth.signInWithPassword({email,password});
+ try {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
 
- if(error){
+  const {error} = await db.auth.signInWithPassword({email,password});
+
+  if(error){
    status.textContent = error.message;
    return;
- }
+  }
 
- document.getElementById("login").style.display="none";
- document.getElementById("dashboard").style.display="block";
+  document.getElementById("login").style.display="none";
+  document.getElementById("dashboard").style.display="block";
+ } catch(error) {
+  status.textContent = error.message;
+ }
 }
 
 async function logout(){
@@ -70,59 +77,85 @@ async function logout(){
  location.reload();
 }
 
-
 async function addMovie(){
- const posterFile = document.getElementById("posterFile").files[0];
- const videoFile = document.getElementById("videoFile").files[0];
-
  const result = document.getElementById("result");
 
- if (!posterFile || !videoFile) {
-  result.textContent = "Choose poster and video first!";
-  return;
+ try {
+  const title = document.getElementById("title").value.trim();
+  const posterFile = document.getElementById("posterFile").files[0];
+  const videoFile = document.getElementById("videoFile").files[0];
+
+  if(!title || !posterFile || !videoFile){
+   result.textContent = "Enter movie name and choose poster and video.";
+   return;
+  }
+
+  result.textContent = "Uploading files...";
+
+  const posterPath = "posters/" + Date.now() + "-" + posterFile.name;
+  const videoPath = "videos/" + Date.now() + "-" + videoFile.name;
+
+  const {error: posterError} = await db.storage
+   .from("movie-files").upload(posterPath, posterFile);
+
+  if(posterError){
+   result.textContent = posterError.message;
+   return;
+  }
+
+  const {error: videoError} = await db.storage
+   .from("movie-files").upload(videoPath, videoFile);
+
+  if(videoError){
+   result.textContent = videoError.message;
+   return;
+  }
+
+  const posterUrl = db.storage.from("movie-files")
+   .getPublicUrl(posterPath).data.publicUrl;
+
+  const videoUrl = db.storage.from("movie-files")
+   .getPublicUrl(videoPath).data.publicUrl;
+
+  const {error} = await db.from("movies").insert({
+   title: title,
+   description: document.getElementById("description").value,
+   poster_url: posterUrl,
+   price_tsh: Number(document.getElementById("price").value),
+   video_ref: videoUrl,
+   is_published: false
+  });
+
+  result.textContent = error ? error.message : "Movie uploaded successfully!";
+
+ } catch(error) {
+  result.textContent = error.message;
  }
-
- result.textContent = "Uploading files...";
-
- const posterPath = "posters/" + Date.now() + "-" + posterFile.name;
- const videoPath = "videos/" + Date.now() + "-" + videoFile.name;
-
- const {error: posterError} = await db.storage
-  .from("movie-files")
-  .upload(posterPath, posterFile);
-
- if (posterError) {
-  result.textContent = posterError.message;
-  return;
- }
-
- const {error: videoError} = await db.storage
-  .from("movie-files")
-  .upload(videoPath, videoFile);
-
- if (videoError) {
-  result.textContent = videoError.message;
-  return;
- }
-
- const posterUrl = db.storage
-  .from("movie-files")
-  .getPublicUrl(posterPath).data.publicUrl;
-
- const videoUrl = db.storage
-  .from("movie-files")
-  .getPublicUrl(videoPath).data.publicUrl;
-
- const {error} = await db.from("movies").insert({
-  title: document.getElementById("title").value,
-  description: document.getElementById("description").value,
-  poster_url: posterUrl,
-  price_tsh: Number(document.getElementById("price").value),
-  video_ref: videoUrl,
-  is_published: false
- });
-
- result.textContent = error
-  ? error.message
-  : "Movie uploaded successfully!";
 }
+
+async function addSeries(){
+ const result = document.getElementById("result");
+
+ try {
+  const title = document.getElementById("seriesTitle").value.trim();
+
+  if(!title){
+   result.textContent = "Enter series name first.";
+   return;
+  }
+
+  const {error} = await db.from("series").insert({
+   title: title,
+   description: document.getElementById("seriesDescription").value,
+   is_published: false
+  });
+
+  result.textContent = error ? error.message : "Series saved successfully!";
+
+ } catch(error) {
+  result.textContent = error.message;
+ }
+}
+</script>
+</body>
+</html>
