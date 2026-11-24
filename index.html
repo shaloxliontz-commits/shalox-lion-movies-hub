@@ -1,9 +1,8 @@
-
 <!DOCTYPE html>
 <html lang="sw">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Shalox Lion Movies Hub</title>
 <style>
 *{box-sizing:border-box}
@@ -21,20 +20,23 @@ h2{color:#f5bd35}
 .card h3{font-size:16px;margin:10px}
 .card p{font-size:13px;color:#ccc;margin:8px 10px}
 .price{color:#f5bd35;font-weight:bold}
-.notice{padding:15px;background:#242337;border-radius:10px;margin:15px 0;color:#ddd}
-button{background:#f5bd35;color:#171321;border:0;padding:10px 14px;border-radius:7px;font-weight:bold}
+.notice{padding:15px;background:#242337;border-radius:10px;margin:15px 0;color:#ddd;overflow-wrap:anywhere}
+video{width:100%;margin-top:8px;background:#000}
 footer{text-align:center;padding:25px;color:#aaa}
 </style>
 </head>
 <body>
+
 <header>
 <h1>🦁 SHALOX LION</h1>
 <p>Movies Hub | Your Entertainment World</p>
 </header>
+
 <nav>
 <a href="#movies">Movies</a>
 <a href="#series">TV Series</a>
 </nav>
+
 <main>
 <div class="notice" id="status">Connecting to Movies Hub...</div>
 
@@ -59,7 +61,7 @@ const SUPABASE_URL =
 "https://ddcnpqwlgwhfmtpfmnpm.supabase.co";
 
 const SUPABASE_KEY =
-"sb_publishable_sPzS56wEqJEtag_21ls_4g_Uj8NwOGS";
+"sb_publishable_sPzS56wEqJEtag_21ls_4g_Uj8NwOGSp";
 
 async function loadContent(table){
  const response = await fetch(
@@ -71,10 +73,11 @@ async function loadContent(table){
    }
   }
  );
- if(!response.ok) {
- const errorText = await response.text();
- throw new Error("Supabase error " + response.status + ": " + errorText);
+
+ if(!response.ok){
+  throw new Error(await response.text());
  }
+
  return await response.json();
 }
 
@@ -84,11 +87,11 @@ function makeCard(item,isMovie){
 
  const img=document.createElement("img");
  img.src=item.poster_url || "";
- img.alt=item.title || "Movie poster";
+ img.alt=item.title || "Poster";
  card.appendChild(img);
 
  const title=document.createElement("h3");
- title.textContent=item.title;
+ title.textContent=item.title || "Untitled";
  card.appendChild(title);
 
  if(item.description){
@@ -100,7 +103,8 @@ function makeCard(item,isMovie){
  if(isMovie){
   const price=document.createElement("p");
   price.className="price";
-  price.textContent="TSh "+Number(item.price_tsh).toLocaleString("en-US");
+  price.textContent="TSh "+
+   Number(item.price_tsh || 0).toLocaleString("en-US");
   card.appendChild(price);
 
   if(item.video_url){
@@ -109,67 +113,56 @@ function makeCard(item,isMovie){
    video.controls=true;
    video.preload="metadata";
    video.playsInline=true;
-   video.style.width="100%";
    card.appendChild(video);
+  }else{
+   const msg=document.createElement("p");
+   msg.textContent="Video haipatikani.";
+   card.appendChild(msg);
   }
- }
-
- return card;
-}
- const card=document.createElement("div");
- card.className="card";
-
- const img=document.createElement("img");
- img.src=isMovie && item.poster_url ? item.poster_url : "";
- img.alt=item.title;
- card.appendChild(img);
-
- const title=document.createElement("h3");
- title.textContent=item.title;
- card.appendChild(title);
-
- if(item.description){
-  const desc=document.createElement("p");
-  desc.textContent=item.description;
-  card.appendChild(desc);
- }
-
- if(isMovie){
-  const price=document.createElement("p");
-  price.className="price";
-  price.textContent="TSh "+Number(item.price_tsh).toLocaleString("en-US");
-  card.appendChild(price);
  }
 
  return card;
 }
 
 async function start(){
+ const status=document.getElementById("status");
+ const movieList=document.getElementById("movieList");
+ const seriesList=document.getElementById("seriesList");
+
  try{
+  status.textContent="Inaunganisha na Supabase...";
+
   const [movies,series]=await Promise.all([
    loadContent("movies"),
    loadContent("series")
   ]);
 
-  const movieList=document.getElementById("movieList");
-  const seriesList=document.getElementById("seriesList");
+  movies.forEach(m=>{
+   movieList.appendChild(makeCard(m,true));
+  });
 
-  movies.forEach(m=>movieList.appendChild(makeCard(m,true)));
-  series.forEach(s=>seriesList.appendChild(makeCard(s,false)));
+  series.forEach(s=>{
+   seriesList.appendChild(makeCard(s,false));
+  });
 
-  document.getElementById("status").textContent=
-   "Connected successfully! Movies: "+movies.length+
+  status.textContent=
+   "Imeunganishwa! Movies: "+movies.length+
    " | Series: "+series.length;
 
-  if(!movies.length) movieList.textContent="No published movies yet.";
-  if(!series.length) seriesList.textContent="No published series yet.";
+  if(!movies.length){
+   movieList.textContent="Hakuna filamu zilizochapishwa.";
+  }
 
-}catch(error){
- document.getElementById("status").textContent=
- "Supabase error: "+error.message;
- console.error("Supabase error:",error);
+  if(!series.length){
+   seriesList.textContent="Hakuna series zilizochapishwa.";
+  }
+
+ }catch(error){
+  status.textContent="Tatizo: "+error.message;
+  console.error(error);
  }
 }
+
 start();
 </script>
 </body>
