@@ -70,30 +70,59 @@ async function logout(){
  location.reload();
 }
 
+
 async function addMovie(){
+ const posterFile = document.getElementById("posterFile").files[0];
+ const videoFile = document.getElementById("videoFile").files[0];
+
+ const result = document.getElementById("result");
+
+ if (!posterFile || !videoFile) {
+  result.textContent = "Choose poster and video first!";
+  return;
+ }
+
+ result.textContent = "Uploading files...";
+
+ const posterPath = "posters/" + Date.now() + "-" + posterFile.name;
+ const videoPath = "videos/" + Date.now() + "-" + videoFile.name;
+
+ const {error: posterError} = await db.storage
+  .from("movie-files")
+  .upload(posterPath, posterFile);
+
+ if (posterError) {
+  result.textContent = posterError.message;
+  return;
+ }
+
+ const {error: videoError} = await db.storage
+  .from("movie-files")
+  .upload(videoPath, videoFile);
+
+ if (videoError) {
+  result.textContent = videoError.message;
+  return;
+ }
+
+ const posterUrl = db.storage
+  .from("movie-files")
+  .getPublicUrl(posterPath).data.publicUrl;
+
+ const videoUrl = db.storage
+  .from("movie-files")
+  .getPublicUrl(videoPath).data.publicUrl;
+
  const {error} = await db.from("movies").insert({
   title: document.getElementById("title").value,
   description: document.getElementById("description").value,
-  poster_url: document.getElementById("poster").value,
+  poster_url: posterUrl,
   price_tsh: Number(document.getElementById("price").value),
-  video_ref: document.getElementById("video").value,
+  video_ref: videoUrl,
   is_published: false
  });
 
- document.getElementById("result").textContent =
- error ? error.message : "Movie saved successfully!";
+ result.textContent = error
+  ? error.message
+  : "Movie uploaded successfully!";
 }
-
-async function addSeries(){
- const {error} = await db.from("series").insert({
-  title: document.getElementById("seriesTitle").value,
-  description: document.getElementById("seriesDescription").value,
-  is_published: false
- });
-
- document.getElementById("result").textContent =
- error ? error.message : "Series saved successfully!";
-}
-</script>
-</body>
-</html>p
