@@ -87,6 +87,43 @@ function makeCard(item,isMovie){
 
  const img=document.createElement("img");
  img.src=item.poster_url || "";
+ img.alt=item.title || "Movie poster";
+ card.appendChild(img);
+
+ const title=document.createElement("h3");
+ title.textContent=item.title || "";
+ card.appendChild(title);
+
+ if(item.description){
+  const desc=document.createElement("p");
+  desc.textContent=item.description;
+  card.appendChild(desc);
+ }
+
+ if(isMovie){
+  const price=document.createElement("p");
+  price.className="price";
+  price.textContent="TSh "+Number(item.price_tsh || 0);
+  card.appendChild(price);
+
+  if(item.video_url){
+   const video=document.createElement("video");
+   video.src=item.video_url;
+   video.controls=true;
+   video.preload="metadata";
+   video.playsInline=true;
+   video.style.width="100%";
+   card.appendChild(video);
+  }
+ }
+
+ return card;
+}
+ const card=document.createElement("div");
+ card.className="card";
+
+ const img=document.createElement("img");
+ img.src=item.poster_url || "";
  img.alt=item.title || "Poster";
  card.appendChild(img);
 
