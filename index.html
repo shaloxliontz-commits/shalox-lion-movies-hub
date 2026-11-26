@@ -37,7 +37,13 @@ footer{text-align:center;padding:25px;color:#aaa}
 <a href="#movies">Movies</a>
 <a href="#series">TV Series</a>
 </nav>
-
+<div style="text-align:center;padding:15px">
+  <label for="language">Language / Lugha:</label>
+  <select id="language" onchange="changeLanguage(this.value)">
+    <option value="sw">Kiswahili</option>
+    <option value="en">English</option>
+  </select>
+</div>
 <main>
 <div class="notice" id="status">Inaunganisha...</div>
 
@@ -58,7 +64,25 @@ footer{text-align:center;padding:25px;color:#aaa}
 </footer>
 
 <script>
-const SUPABASE_URL =
+function changeLanguage(lang) {
+  const sw = lang === "sw";
+
+  document.querySelector("header p").textContent =
+    sw ? "Movies Hub | Ulimwengu wa Burudani" : "Movies Hub | Your Entertainment World";
+
+  document.querySelectorAll("nav a")[0].textContent =
+    sw ? "Filamu" : "Movies";
+
+  document.querySelectorAll("nav a")[1].textContent =
+    sw ? "Tamthilia" : "TV Series";
+
+  document.querySelector("#movies h2").textContent =
+    sw ? "🎬 Filamu" : "🎬 Movies";
+
+  document.querySelector("#series h2").textContent =
+    sw ? "📺 Tamthilia" : "📺 TV Series";
+}
+ const SUPABASE_URL =
 "https://ddcnpqwlgwhfmtpfmnpm.supabase.co";
 
 const SUPABASE_KEY =
