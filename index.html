@@ -65,11 +65,9 @@ footer{text-align:center;padding:25px;color:#aaa}
 
 <script>
 function changeLanguage(lang) {
-  const savedLanguage = localStorage.getItem("siteLanguage") || "sw";
-
-document.getElementById("language").value = savedLanguage;
-changeLanguage(savedLanguage);
-  const sw = lang === "sw";
+  const selected = lang === "en" ? "en" : "sw";
+  localStorage.setItem("siteLanguage", selected);
+  const sw = selected === "sw";
 
   document.querySelector("header p").textContent =
     sw ? "Movies Hub | Ulimwengu wa Burudani" : "Movies Hub | Your Entertainment World";
@@ -86,6 +84,17 @@ changeLanguage(savedLanguage);
   document.querySelector("#series h2").textContent =
     sw ? "📺 Tamthilia" : "📺 TV Series";
 }
+  function changeLanguage(lang) {
+  // code ya kubadilisha lugha
+}
+
+const savedLanguage =
+  localStorage.getItem("siteLanguage") || "sw";
+
+document.getElementById("language").value = savedLanguage;
+changeLanguage(savedLanguage);
+
+const SUPABASE_URL = "https://ddcnpqwlgwhfmtpfmnpm.supabase.co";
  const SUPABASE_URL =
 "https://ddcnpqwlgwhfmtpfmnpm.supabase.co";
 
